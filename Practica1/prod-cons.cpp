@@ -12,6 +12,7 @@ using namespace std ;
 const unsigned
   num_items  = 40 , // Numero de items a Consumirdor
   tam_vector = 10 ; // Tamaño del vector
+  int buffer [tam_vector];
   sem_t consumir, producir, mutex;
 
 // ---------------------------------------------------------------------
@@ -38,11 +39,13 @@ void * productor( void * )
 {
   for( unsigned i = 0 ; i < num_items ; i++ )
   {
-    int dato = producir_dato() ;
-
-    // falta: insertar "dato" en el vector
-    // ................
-
+    int dato = producir_dato();  // Producimos un nuevo dato
+    sem_wait (&producir); // Semaforo del productor
+    sem_wait (&mutex);  // Ya que nos encontramos ante una seccion critica
+    buffer[i] = dato; // Escribe el dato en la posicion i del buffer
+    i++;   // Incrementa la posicion del buffer
+    sem_post (&mutex); // Decrementamos la seccion critica para que otro proceso pueda entrar
+    sem_post (&consumir); // Decrementamos el consumidor
   }
   return NULL ;
 }

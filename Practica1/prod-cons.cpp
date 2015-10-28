@@ -1,3 +1,5 @@
+//Ejercicio Productor - Consumirdor
+//Autor: Javier Aranda Izquierdo
 #include <iostream>
 #include <cassert>
 #include <pthread.h>
@@ -6,33 +8,38 @@
 using namespace std ;
 
 // ---------------------------------------------------------------------
-// constantes 
-const unsigned 
-  num_items  = 40 ,
-  tam_vector = 10 ;              
+// constantes
+const unsigned
+  num_items  = 40 , // Numero de items a Consumirdor
+  tam_vector = 10 ; // Tamaño del vector
+  sem_t consumir, producir, mutex;
 
 // ---------------------------------------------------------------------
+
+// Funcion para profucir datos
 
 unsigned producir_dato()
 {
   static int contador = 0 ;
-  cout << "producido: " << contador << endl << flush ;
+  cout << "Producido: " << contador << endl << flush ;
   return contador++ ;
 }
 // ---------------------------------------------------------------------
 
+// Funcion para consumir datos
+
 void consumir_dato( int dato )
 {
-    cout << "dato recibido: " << dato << endl ;
+    cout << "Dato recibido: " << dato << endl ;
 }
 // ---------------------------------------------------------------------
 
 void * productor( void * )
-{   
+{
   for( unsigned i = 0 ; i < num_items ; i++ )
-  { 
+  {
     int dato = producir_dato() ;
-    
+
     // falta: insertar "dato" en el vector
     // ................
 
@@ -42,11 +49,11 @@ void * productor( void * )
 // ---------------------------------------------------------------------
 
 void * consumidor( void * )
-{   
+{
   for( unsigned i = 0 ; i < num_items ; i++ )
-  {   
+  {
     int dato ;
-    
+
     // falta: leer "dato" desde el vector intermedio
     // .................
 
@@ -58,9 +65,8 @@ void * consumidor( void * )
 
 int main()
 {
-   
-  // falta: crear y poner en marcha las hebras, esperar que terminen
-  // ....
+  pthread_t hebraConsumidor, hebraProductor;
 
-   return 0 ; 
+
+   return 0 ;
 }

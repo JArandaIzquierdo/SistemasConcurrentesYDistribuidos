@@ -5,6 +5,9 @@
 #include <pthread.h>
 #include <semaphore.h>
 
+#include <iomanip>
+#include <cstdlib>
+
 using namespace std ;
 
 // ---------------------------------------------------------------------
@@ -14,7 +17,7 @@ const unsigned
   tam_vector = 10 ; // Tamaño del vector
   int buffer [tam_vector];  // Buffer
   int indice = 0;
-  sem_t consumir, producir, mutex; // Declaracion de los semaforos
+  sem_t consumir, producir, tex; // Declaracion de los semaforos
 
 // ---------------------------------------------------------------------
 
@@ -42,14 +45,14 @@ void * productor( void * )
   {
     int dato = producir_dato();  // Producimos un nuevo dato
     sem_wait (&producir); // Semaforo del productor
-    sem_wait (&mutex);  // Ya que nos encontramos ante una seccion critica
+    sem_wait (&tex);  // Ya que nos encontramos ante una seccion critica
 
     //------------------- Seccion critica ---------------------------
     cout << "Dato producido: " << dato << endl;
     buffer[i] = dato; // Escribe el dato en la posicion i del buffer
     i++;   // Incrementa la posicion del buffer
     // ------------------ Fin seccion critica ------------------------
-    sem_post (&mutex); // Decrementamos la seccion critica para que otro proceso pueda entrar
+    sem_post (&tex); // Decrementamos la seccion critica para que otro proceso pueda entrar
     sem_post (&consumir); // Decrementamos el consumidor
   }
   return NULL ;
@@ -62,13 +65,13 @@ void * consumidor( void * )
   {
       int elemento;
 
-      sem_wait(&consumidor);
-      sem_wait (&mutex);
+      sem_wait(&consumir);
+      sem_wait (&tex);
       //------------------- Seccion critica ----------------------------
       i--;
       elemento - buffer[indice];
       //------------------- Fin seccion critica ------------------------
-      sem_post (&mutex);
+      sem_post (&tex);
       sem_post (&producir);
 
 
@@ -87,7 +90,7 @@ int main()
   // Inicializacion de los semaforos
   sem_init (&consumidor,0,0); // Semaforo para el consumidor
   sem_init (&producutor,0,num_items); // Semaforo para el productor
-  sem_init (&mutex,0,1); // Semaforo de exclusion mutua
+  sem_init (&tex,0,1); // Semaforo de exclusion mutua
 
   // Creacion de las hebras
   pthread_create (&hebraConsumidor,NULL, consumidor, NULL;
@@ -100,7 +103,7 @@ int main()
   // Destruimos los semaforos
   sem_destroy(&consumir);
   sem_destroy(&profucir);
-  sem_destroy(&mutex);
+  sem_destroy(&tex);
 
    return 0 ;
 }

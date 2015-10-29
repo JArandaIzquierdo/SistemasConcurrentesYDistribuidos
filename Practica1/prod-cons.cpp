@@ -13,6 +13,7 @@ const unsigned
   num_items  = 40 , // Numero de items a Consumirdor
   tam_vector = 10 ; // Tamaño del vector
   int buffer [tam_vector];  // Buffer
+  int indice = 0;
   sem_t consumir, producir, mutex; // Declaracion de los semaforos
 
 // ---------------------------------------------------------------------
@@ -59,13 +60,16 @@ void * consumidor( void * )
 {
   for( unsigned i = 0 ; i < num_items ; i++)
   {
-    int elemento;
-    while (true)
-    {
+      int elemento;
+
       sem_wait(&consumidor);
       sem_wait (&mutex);
+      //------------------- Seccion critica ----------------------------
       i--;
-    }
+      elemento - buffer[indice];
+      //------------------- Fin seccion critica ------------------------
+      sem_post (&mutex);
+      sem_post (&producir);
 
 
 
@@ -81,15 +85,22 @@ int main()
   pthread_t hebraConsumidor, hebraProductor;
 
   // Inicializacion de los semaforos
-  sem_init (&consumidor,0,0);
-  sem_init (&producutor,0,num_items);
-  sem_init (&mutex,0,1);
+  sem_init (&consumidor,0,0); // Semaforo para el consumidor
+  sem_init (&producutor,0,num_items); // Semaforo para el productor
+  sem_init (&mutex,0,1); // Semaforo de exclusion mutua
 
   // Creacion de las hebras
-  pthread_create (&hebraConsumidor,null, consumidor, (void *)50);
-  pthread_create (&hebraProductor,null, producutor, 0;
+  pthread_create (&hebraConsumidor,NULL, consumidor, NULL;
+  pthread_create (&hebraProductor,NULL, producutor, NULL;
 
+  // Deja que las hebras terminen de ejecutarse
+  pthread_join(hebraProductor,NULL);
+  pthread_join(hebraConsumidor,NULL);
 
+  // Destruimos los semaforos
+  sem_destroy(&consumir);
+  sem_destroy(&profucir);
+  sem_destroy(&mutex);
 
    return 0 ;
 }

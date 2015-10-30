@@ -17,7 +17,7 @@ const unsigned
   tam_vector = 10 ; // Tamaño del vector
   int buffer [tam_vector];  // Buffer
   int j = 0;
-  sem_t consumir, producir, tex, tex2; // Declaracion de los semaforos
+  sem_t consumir, producir, tex, turnos; // Declaracion de los semaforos
 
 // ---------------------------------------------------------------------
 
@@ -26,9 +26,7 @@ const unsigned
 unsigned producir_dato()
 {
   static int contador = 0 ;
-  sem_wait (&tex2);
   cout << "Producido: " << contador << endl << flush ;
-  sem_post (&tex2);
   return contador++ ;
 }
 // ---------------------------------------------------------------------
@@ -37,17 +35,17 @@ unsigned producir_dato()
 
 void consumir_dato( int dato )
 {
-    sem_wait (&tex2);
     cout << "Dato recibido: " << dato << endl ;
-    sem_post (&tex2);
 }
 // ---------------------------------------------------------------------
 
-void * productor( void * )
+void * productor( void * arg)
 {
+  int l = (int) arg;
   for( unsigned i = 0 ; i < num_items ; i++ )
   {
     int elemento = producir_dato();  // Producimos un nuevo dato
+    sem_wait(&turnos[l]); // Semanforo para controlar a los productores
     sem_wait (&producir); // Semaforo del productor
     sem_wait (&tex);  // Ya que nos encontramos ante una seccion critica
 
@@ -56,8 +54,10 @@ void * productor( void * )
     buffer[j] = elemento; // Escribe el dato en la posicion i del buffer
     j++;   // Incrementa la posicion del buffer
     // ------------------ Fin seccion critica ------------------------
+
     sem_post (&tex); // Decrementamos la seccion critica para que otro proceso pueda entrar
     sem_post (&consumir); // Decrementamos el consumidor
+    sem_post (&turnos[(l+1)%2]);
   }
   return NULL ;
 }
@@ -71,10 +71,12 @@ void * consumidor( void * )
 
       sem_wait(&consumir);
       sem_wait (&tex);
+
       //------------------- Seccion critica ----------------------------
       j--;
       elemento = buffer[j];
       //------------------- Fin seccion critica ------------------------
+
       sem_post (&tex);
       sem_post (&producir);
 
@@ -89,26 +91,42 @@ void * consumidor( void * )
 int main()
 {
   // Creacion de la hebras
-  pthread_t hebraConsumidor, hebraProductor;
+  pthread_t hebraConsumidor, prod1, prod2;
 
   // Inicializacion de los semaforos
   sem_init (&consumir,0,0); // Semaforo para el consumidor
   sem_init (&producir,0,num_items); // Semaforo para el productor
   sem_init (&tex,0,1); // Semaforo de exclusion mutua
-  sem_init (&tex2,0,1); // Semaforo de exclusion mutua
+  sem_init (&turnos[0],0,1); // Semaforo para sincronizacion de productores
+  sem_init (&turnos[0],0,0); // Semaforo para sincronizacion de productores
 
   // Creacion de las hebras
   pthread_create (&hebraConsumidor,NULL, consumidor, NULL);
-  pthread_create (&hebraProductor,NULL, productor, NULL);
+
+  // Creacion de hebras productoras
+  for(int i=0; i<2; i++)
+  {
+    pthread_create(&prod[i],NULL, productor, (void*)i);
+  }
 
   // Deja que las hebras terminen de ejecutarse
-  pthread_join(hebraProductor,NULL);
   pthread_join(hebraConsumidor,NULL);
+
+  // Join de las hebras del productor
+  for(int i=0; i<2; i++)
+  {
+    pthread_join(&prod[i],NULL);
+  }
+
+  int turno0, turno1;
+  if(rand()%2==0)
+    turno1==1;
 
   // Destruimos los semaforos
   sem_destroy(&consumir);
   sem_destroy(&producir);
   sem_destroy(&tex);
+  sem_destroy(&turnos);
 
    return 0 ;
 }

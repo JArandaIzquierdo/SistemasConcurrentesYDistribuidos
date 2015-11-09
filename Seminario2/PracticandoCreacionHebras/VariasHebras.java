@@ -6,14 +6,22 @@ import java.lang.InterruptedException;
 
 public class VariasHebras{
 
-    public static void main (String []args){
-        Hebra h = new Hebra(5);
-        h.thr.start();
+   public static void main (String []args){
+        Hebra[]hebras = new Hebra[50]; // Creamos un vector de hebras
 
-        try{
-            h.thr.join();
-        }catch (InterruptedException ex){
+        // Insertamos las hebra sen el vector y las iniciamos con start
+        for (int i=0; i< 50; i++){
+            hebras[i] = new Hebra(5);
+            hebras[i].thr.start();
+        }
 
+        // Recorremos el vector y hacemos el join de cada hebra
+        for (int i=0; i < 50; i++){
+            try{
+                hebras[i].thr.join();
+            }catch (InterruptedException ex){
+
+            }
         }
     }
 }
@@ -22,12 +30,10 @@ class Hebra implements Runnable {
 
     private int n;
     Thread thr;
-    Hebra[]hebras;
 
     public void run(){
-        System.out.println("Prueba hebra ");
+        System.out.println(" Prueba de hebra ");
     }
-
     // Creacion de la hebra
     Hebra(int n){
         this.n = n;
